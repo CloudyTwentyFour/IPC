@@ -36,10 +36,10 @@ typedef struct
 	int32_t slen;
 }IPC_SockDomainCfg_t;
 
-/*Public function declarations*/
-extern int32_t IPC_DomainSockCreate(SOCK_DOMAIN_t *client, SOCK_DOMAIN_t *server);
+/*Public Function Declaration*/
+extern int32_t IPC_DomainSockCreate(IPC_SockDomainCfg_t *addr, const char *clientaddr, const char *serveraddr);
 extern int32_t IPC_DomainSock_Recv(const IPC_SockDomainCfg_t *saddr, void *databuf, size_t datalen);
-extern int32_t IPC_DomainSock_Send(const IPC_SockDomainCfg_t *saddr, void *databuf, size_t datalen);
+extern int32_t IPC_DomainSock_Send(const IPC_SockDomainCfg_t *saddr, 	void *databuf, size_t datalen);
 extern void IPC_DomainSock_Close(const int32_t sockfd);
 
-#endif /* IPC_DOMAINSOCK_H_ */
+#endif /* IPC_DMSOCK_H_ */

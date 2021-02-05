@@ -24,12 +24,14 @@
 * @return socket filedescriptor 
 * @date 04/2/2021
 */
-int32_t IPC_dmSockCreate(SOCK_DOMAIN_t *client, SOCK_DOMAIN_t *server)
+int32_t IPC_DomainSockCreate(IPC_SockDomainCfg_t *addr, const char *clientaddr, const char *serveraddr)
 {
 	int32_t sockfd;
 	int32_t retval = IPC_OK;
 	int32_t opt = 1;
-	if ((sockfd = socket(AF_UNIX, SOCK_DGRAM, 0)) < 0)
+	SOCK_DOMAIN_t dmAddr = {0};
+
+	if ((addr != NULL) && ((sockfd = socket(AF_UNIX, SOCK_DGRAM, 0)) < 0))
 	{
 		perror("socket");
 		retval = ERR_SOCK_FAILURE;
@@ -39,19 +41,20 @@ int32_t IPC_dmSockCreate(SOCK_DOMAIN_t *client, SOCK_DOMAIN_t *server)
 		/*If both client and server parameters are provided then,
 		create client connection and connect to server with
 		provided information*/
-		if((client != NULL) && (server != NULL))
+		if((clientaddr != NULL) && (serveraddr != NULL))
 		{
-			client->sun_family = AF_UNIX;
-			server->sun_family = AF_UNIX;
-
-			if(bind(sockfd, (SOCKADDR_t *)client, sizeof(client)) < 0)
+			addr->addr.sun_family = AF_UNIX;
+			dmAddr.sun_family = AF_UNIX;
+			strcpy(&dmAddr.sun_path[0], clientaddr);
+			strcpy(&addr->addr.sun_path[0], serveraddr);
+			if(bind(sockfd, (SOCKADDR_t *)&dmAddr, sizeof(dmAddr)) < 0)
 			{
 				perror("bind");
 				retval = ERR_BIND_FAILURE;
 			}
 			else
 			{
-				if(connect(sockfd, (SOCKADDR_t *)server, sizeof(server)) < 0)
+				if(connect(sockfd, (SOCKADDR_t *)&addr->addr, sizeof(SOCK_DOMAIN_t)) < 0)
 				{
 					perror("connect");
 					retval = ERR_CONNECT_FAILURE;
@@ -65,10 +68,11 @@ int32_t IPC_dmSockCreate(SOCK_DOMAIN_t *client, SOCK_DOMAIN_t *server)
 		}
 		else
 		{
-			/*Create Server connection in case only Server parameters are passed*/
-			unlink(server->sun_path);
-			server->sun_family = AF_UNIX;
-			if(bind(sockfd, (SOCKADDR_t *)server, sizeof(server)) < 0)
+			//unlink(server->sun_path);
+			memset(&addr->addr, 0, sizeof(addr->addr));
+			dmAddr.sun_family = AF_UNIX;
+			strcpy(&dmAddr.sun_path[0], serveraddr);
+			if(bind(sockfd, (SOCKADDR_t *)&dmAddr, sizeof(dmAddr)) < 0)
 			{
 				perror("bind");
 				retval = ERR_BIND_FAILURE;
